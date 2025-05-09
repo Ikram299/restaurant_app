@@ -1,15 +1,19 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
-)git push origin master
+	"github.com/gin-gonic/gin"
+)
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Bonjour depuis le backend !")
+	r := gin.Default()
+
+	// Route pour la route /api/bonjour
+	r.GET("/api/bonjour", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "Bonjour depuis le backend Go !",
+		})
 	})
 
-	fmt.Println("Serveur lancé sur http://localhost:8080")
-	http.ListenAndServe(":8080", nil)
+	// Lancer le serveur sur le port 8080
+	r.Run(":8080")
 }
