@@ -1,22 +1,40 @@
-name: frontend
+name: resto_app
 description: "A new Flutter project."
-publish_to: 'none'
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
+# The following defines the version and build number for your application.
 version: 1.0.0+1
 
+# Définir la contrainte du SDK Dart
 environment:
-  sdk: ^3.7.2
+  sdk: ^3.7.0
 
 dependencies:
   flutter:
     sdk: flutter
+
+  # Autres dépendances
+  http: ^1.4.0
+  google_fonts: ^6.1.0
   cupertino_icons: ^1.0.8
-  http: ^0.13.6
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
   flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
+
+  # Pour ajouter des polices personnalisées (si nécessaire)
+  # fonts:
+  #   - family: Schyler
+  #     fonts:
+  #       - asset: fonts/Schyler-Regular.ttf
+  #       - asset: fonts/Schyler-Italic.ttf
+  #         style: italic
+  assets:
+    - assets/logo.png
