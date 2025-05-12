@@ -50,13 +50,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Champ Email avec couleur de texte pour le label
                   _buildTextField(_emailController, Icons.email, 'Email'),
                   const SizedBox(height: 16),
-                  // Champ Mot de passe avec gestion de la visibilité
                   _buildTextField(_passwordController, Icons.lock, 'Mot de passe', obscure: true),
                   const SizedBox(height: 8),
-                  // Lien "Mot de passe oublié"
                   TextButton(
                     onPressed: () {
                       // Action pour le lien "Forget password?"
@@ -67,17 +64,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Bouton de connexion avec style personnalisé
                   _buildAuthButton(
                     icon: Icons.login_rounded,
                     text: 'Se connecter',
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF4A6572), Color(0xFF4A6572)], // Fond gris-bleu
+                      colors: [Color(0xFF4A6572), Color(0xFF4A6572)],
                     ),
                     onPressed: _login,
                   ),
                   const SizedBox(height: 12),
-                  // Lien pour accéder à l'inscription
                   TextButton(
                     onPressed: () {
                       Navigator.pushNamed(context, '/signup');
@@ -96,15 +91,16 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Méthode pour créer un champ de texte avec bordure colorée
   Widget _buildTextField(TextEditingController controller, IconData icon, String label, {bool obscure = false}) {
+    final isPasswordField = label.toLowerCase().contains('mot de passe');
+
     return TextField(
       controller: controller,
-      obscureText: obscure,
+      obscureText: isPasswordField ? !_isPasswordVisible : false,
       decoration: InputDecoration(
         prefixIcon: Icon(icon),
         labelText: label,
-        labelStyle: TextStyle(color: primaryColor), // Changer la couleur du label
+        labelStyle: TextStyle(color: primaryColor),
         filled: true,
         fillColor: Colors.grey.shade100,
         border: OutlineInputBorder(
@@ -113,17 +109,29 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: primaryColor, width: 2), // Bordure colorée
+          borderSide: BorderSide(color: primaryColor, width: 2),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
         ),
+        suffixIcon: isPasswordField
+            ? IconButton(
+                icon: Icon(
+                  _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  color: primaryColor,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isPasswordVisible = !_isPasswordVisible;
+                  });
+                },
+              )
+            : null,
       ),
     );
   }
 
-  // Méthode pour créer le bouton de connexion
   Widget _buildAuthButton({
     required IconData icon,
     required String text,
@@ -131,27 +139,27 @@ class _LoginScreenState extends State<LoginScreen> {
     required VoidCallback onPressed,
   }) {
     return Container(
-      alignment: Alignment.center, // Centrer le bouton
+      alignment: Alignment.center,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20), // Bouton plus petit
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          backgroundColor: gradient.colors[0], // Utiliser la couleur du gradient pour le fond
-          shadowColor: Colors.transparent, // Enlever l'ombre
+          backgroundColor: gradient.colors[0],
+          shadowColor: Colors.transparent,
         ),
         onPressed: onPressed,
         child: Row(
-          mainAxisSize: MainAxisSize.min, // Taille du bouton adaptée au texte
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, color: Colors.white, size: 20),
             const SizedBox(width: 8),
             Text(
               text,
               style: TextStyle(
-                fontSize: 14, // Texte légèrement plus petit
-                color: Colors.white, // Texte blanc
+                fontSize: 14,
+                color: Colors.white,
                 fontWeight: FontWeight.w600,
                 fontFamily: 'Poppins',
               ),
