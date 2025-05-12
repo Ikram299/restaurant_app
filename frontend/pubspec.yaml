@@ -1,19 +1,16 @@
-name: resto_app
+name: restaurant_app
 description: "A new Flutter project."
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-# The following defines the version and build number for your application.
 version: 1.0.0+1
 
-# Définir la contrainte du SDK Dart
 environment:
-  sdk: ^3.7.0
+  sdk: ">=3.7.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
+  flutter_svg: ^2.0.7 # Pour les images SVG
 
   # Autres dépendances
   http: ^1.4.0
@@ -23,18 +20,12 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+    
 
   flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
 
-  # Pour ajouter des polices personnalisées (si nécessaire)
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
   assets:
     - assets/logo.png

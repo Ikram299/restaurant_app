@@ -1,221 +1,126 @@
 import 'package:flutter/material.dart';
 
-class WelcomeScreen extends StatefulWidget {
-  @override
-  _WelcomeScreenState createState() => _WelcomeScreenState();
-}
-
-class _WelcomeScreenState extends State<WelcomeScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<Offset> _slideAnimation;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _buttonOffsetAnimation;
-  late Animation<double> _buttonOpacity;
-
-  final primaryColor = Color(0xFF4A6572);
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: 1600),
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: Offset(0, -1),
-      end: Offset(0, 0),
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    ));
-
-    _fadeAnimation = CurvedAnimation(
-      parent: _controller,
-      curve: Interval(0.2, 1.0, curve: Curves.easeIn),
-    );
-
-    _buttonOffsetAnimation = Tween<Offset>(
-      begin: Offset(0, 0.4),
-      end: Offset(0, 0),
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    ));
-
-    _buttonOpacity = CurvedAnimation(
-      parent: _controller,
-      curve: Interval(0.5, 1.0, curve: Curves.easeIn),
-    );
-
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
+class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFD9E2E5),
       body: SafeArea(
-        child: Stack(
-          children: [
-            // Cercle animé
-            SlideTransition(
-              position: _slideAnimation,
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: ClipPath(
-                  clipper: TopHalfCircleClipper(),
-                  child: Container(
-                    height: 470,
-                    color: Color(0xFFD9E2E5),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        AnimatedLogo(),
-                        SizedBox(height: 20),
-                        Text(
-                          'Bienvenue',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2F2F2F),
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                          child: Text(
-                            "Découvrez notre service de restauration moderne et rapide.",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Logo
+              Image.asset(
+                'assets/logo.png',
+                width: 120,
+                height: 120,
+              ),
+              const SizedBox(height: 30),
+              // Titre
+              Text(
+                'Bienvenue !',
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: 'Poppins',
+                  color: Colors.grey.shade800,
+                ),
+              ),
+              const SizedBox(height: 18),
+              // Sous-titre
+              Text(
+                'Explorez notre menu et choisissez une option pour commencer votre expérience',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.grey.shade600,
+                  height: 1.4,
+                  fontFamily: 'Poppins',
+                ),
+              ),
+              const SizedBox(height: 30),
+              // Carte de connexion
+              _buildAuthOption(
+                icon: Icons.login_rounded,
+                text: 'Se connecter',
+                bgColor: Colors.white,
+                textColor: const Color(0xFF4A6572),
+                onPressed: () => Navigator.pushNamed(context, '/login'),
+              ),
+              const SizedBox(height: 20),
+              // Carte de création de compte
+              _buildAuthOption(
+                icon: Icons.person_add_alt_1_rounded,
+                text: 'Créer un compte',
+                bgColor: const Color(0xFF4A6572),
+                textColor: Colors.white,
+                onPressed: () => Navigator.pushNamed(context, '/signup'),
+              ),
+              const SizedBox(height: 25),
+              // Lien sans compte
+              TextButton(
+                onPressed: () {},
+                child: Text(
+                  'Continuer sans compte',
+                  style: TextStyle(
+                    color: Colors.grey.shade700,
+                    fontFamily: 'Poppins',
+                    decoration: TextDecoration.underline,
                   ),
                 ),
               ),
-            ),
-
-            // Bouton plus bas et plus petit
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: FadeTransition(
-                opacity: _buttonOpacity,
-                child: SlideTransition(
-                  position: _buttonOffsetAnimation,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 25.0), // plus bas
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.pushReplacementNamed(context, '/login');
-                      },
-                      borderRadius: BorderRadius.circular(14),
-                      splashColor: Colors.white24,
-                      highlightColor: Colors.transparent,
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          color: primaryColor,
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 6,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 10), // plus petit
-                          child: Text(
-                            'Commencer',
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            )
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
-}
 
-// Clipper pour créer le demi-cercle
-class TopHalfCircleClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    Path path = Path();
-    path.lineTo(0, size.height * 0.75);
-    path.quadraticBezierTo(
-      size.width / 2,
-      size.height,
-      size.width,
-      size.height * 0.75,
-    );
-    path.lineTo(size.width, 0);
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
-}
-
-// Logo animé
-class AnimatedLogo extends StatefulWidget {
-  @override
-  _AnimatedLogoState createState() => _AnimatedLogoState();
-}
-
-class _AnimatedLogoState extends State<AnimatedLogo>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: Duration(seconds: 2),
-    );
-    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _animation,
-      child: Image.asset(
-        'assets/logo.png',
-        height: 100,
+  Widget _buildAuthOption({
+    required IconData icon,
+    required String text,
+    required Color bgColor,
+    required Color textColor,
+    required VoidCallback onPressed,
+  }) {
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 8,
+              spreadRadius: 1,
+            )
+          ],
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16), // Réduction du padding pour les rendre plus petits
+        child: Row(
+          children: [
+            Icon(icon, color: textColor, size: 22), // Réduction de la taille de l'icône
+            const SizedBox(width: 12), // Réduction de l'espacement
+            Expanded(
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 16, // Réduction de la taille de la police
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Poppins',
+                ),
+              ),
+            ),
+            Icon(Icons.arrow_forward_rounded, 
+                color: textColor.withOpacity(0.8), 
+                size: 20), // Réduction de la taille de l'icône de la flèche
+          ],
+        ),
       ),
     );
   }
