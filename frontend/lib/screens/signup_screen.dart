@@ -17,18 +17,53 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _authService = AuthService();
 
   bool _isPasswordVisible = false; // pour gérer la visibilité du mot de passe
+  bool _isLoading = false; // Indicateur de chargement
 
   void _register() async {
+    // Récupère les valeurs des champs
+    final nom = _nomController.text;
+    final prenom = _prenomController.text;
+    final email = _emailController.text;
+    final motDePasse = _passwordController.text;
+    final numTel = _numTelController.text;
+    final adresse = _adresseController.text;
+
+    // Validation des champs
+    if (nom.isEmpty || prenom.isEmpty || email.isEmpty || motDePasse.isEmpty || numTel.isEmpty || adresse.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Veuillez remplir tous les champs"),
+      ));
+      return;
+    }
+
+    // Validation de l'email (simple exemple)
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    if (!emailRegex.hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Email invalide"),
+      ));
+      return;
+    }
+
+    setState(() {
+      _isLoading = true; // Affiche l'indicateur de chargement
+    });
+
     final client = Client(
-      email: _emailController.text,
-      nomClient: _nomController.text,
-      prenomClient: _prenomController.text,
-      motDePasse: _passwordController.text,
-      numTel: _numTelController.text,
-      adresse: _adresseController.text,
+      email: email,
+      nomClient: nom,
+      prenomClient: prenom,
+      motDePasse: motDePasse,
+      numTel: numTel,
+      adresse: adresse,
     );
 
     final success = await _authService.register(client);
+
+    setState(() {
+      _isLoading = false; // Cache l'indicateur de chargement
+    });
+
     if (success) {
       Navigator.pushReplacementNamed(context, '/login');
     } else {
@@ -81,6 +116,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     onPressed: _register,
                   ),
+                  // Affichage de l'indicateur de chargement si nécessaire
+                  if (_isLoading)
+                    Center(child: CircularProgressIndicator()),
                 ],
               ),
             ),

@@ -1,24 +1,26 @@
 class Client {
-  final String email; // devient l'identifiant unique
-  final String nomClient;
-  final String prenomClient;
-  final String motDePasse;
-  final String numTel;
-  final String adresse;
+  final String email; // L'email reste l'identifiant unique pour chaque client
+  final String? nomClient;  // Optionnel
+  final String? prenomClient;  // Optionnel
+  final String? motDePasse;  // Optionnel
+  final String? numTel;  // Optionnel
+  final String? adresse;  // Optionnel
 
+  // Constructeur pour initialiser un Client avec les valeurs des champs
   Client({
-    required this.email,
-    required this.nomClient,
-    required this.prenomClient,
-    required this.motDePasse,
-    required this.numTel,
-    required this.adresse,
+    required this.email,  // L'email sert d'identifiant unique
+    this.nomClient,  // Optionnel
+    this.prenomClient,  // Optionnel
+    this.motDePasse,  // Optionnel
+    this.numTel,  // Optionnel
+    this.adresse,  // Optionnel
   });
 
-  // Exemple de méthode de conversion en Map (pour base de données)
+  // Méthode toMap() pour convertir un objet Client en Map
+  // Utile pour envoyer les données au backend ou dans une base de données
   Map<String, dynamic> toMap() {
     return {
-      'email': email,
+      'email': email,  // L'email reste l'identifiant unique
       'nomClient': nomClient,
       'prenomClient': prenomClient,
       'motDePasse': motDePasse,
@@ -27,10 +29,11 @@ class Client {
     };
   }
 
-  // Exemple de factory pour reconstruire un Client depuis un Map
+  // Factory fromMap() pour reconstruire un objet Client à partir d'un Map
+  // Cette méthode est utilisée pour transformer un Map reçu (par exemple du backend) en un objet Client
   factory Client.fromMap(Map<String, dynamic> map) {
     return Client(
-      email: map['email'],
+      email: map['email'],  // L'email est utilisé comme identifiant unique
       nomClient: map['nomClient'],
       prenomClient: map['prenomClient'],
       motDePasse: map['motDePasse'],
