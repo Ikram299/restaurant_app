@@ -8,7 +8,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:frontend/main.dart';
+// ignore: depend_on_referenced_packages
+import 'package:restaurant_app/main.dart'; // ← Nom correct selon pubspec.yaml
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {

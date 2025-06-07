@@ -5,27 +5,31 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.7.0 <4.0.0"
+  sdk: ">=3.7.0 <4.0.0" # This specifies your Flutter SDK compatibility.
 
 dependencies:
   flutter:
     sdk: flutter
-  flutter_svg: ^2.0.7 # Pour les images SVG
-
-  # Autres dépendances
-  http: ^1.4.0
+  flutter_svg: ^2.0.7 # For SVG images
+  sqflite: ^2.0.0+4
+  path_provider: ^2.0.8
+  http: ^1.4.0 # For HTTP requests
   google_fonts: ^6.1.0
   cupertino_icons: ^1.0.8
-
+  provider: ^6.0.5 # For state management, if you choose Provider
+  fl_chart: ^0.68.0
+  intl: ^0.18.1 # Utilisez la dernière version stable
+  image_picker: ^1.1.0 # Vérifiez la dernière version sur pub.dev
 dev_dependencies:
   flutter_test:
     sdk: flutter
-    
-
   flutter_lints: ^5.0.0
-
 flutter:
   uses-material-design: true
-
+  
+  # Declare assets here, with correct indentation
   assets:
     - assets/logo.png
+    - assets/burger.jpg
+    - assets/salad.jpg
+    - assets/pizza.jpg
