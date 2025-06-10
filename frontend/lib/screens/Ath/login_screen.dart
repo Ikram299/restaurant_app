@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '/services/auth_service.dart';
-import '/models/client_model.dart'; // Vérifie que le chemin est correct
+// Vérifie que le chemin est correct
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -40,16 +40,17 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     if (client != null) {
-      // --- AJOUTEZ CES PRINTS DE DÉBOGAGE ICI ---
-      print('DEBUG FLUTTER: Connexion réussie pour l\'email: ${client.email}');
-      print('DEBUG FLUTTER: Statut isAdmin du client: ${client.isAdmin}');
-      // --- FIN DES PRINTS DE DÉBOGAGE ---
+      // Supprimez ou commentez les lignes de débogage suivantes :
+      // print('DEBUG FLUTTER: Connexion réussie pour l\'email: ${client.email}');
+      // print('DEBUG FLUTTER: Statut isAdmin du client: ${client.isAdmin}');
 
       if (client.isAdmin) {
-        print('DEBUG FLUTTER: Redirection vers /admin_dashboard');
+        // Supprimez ou commentez la ligne de débogage suivante :
+        // print('DEBUG FLUTTER: Redirection vers /admin_dashboard');
         Navigator.pushReplacementNamed(context, '/admin_dashboard');
       } else {
-        print('DEBUG FLUTTER: Redirection vers /home');
+        // Supprimez ou commentez la ligne de débogage suivante :
+        // print('DEBUG FLUTTER: Redirection vers /home');
         Navigator.pushReplacementNamed(context, '/home');
       }
     } else {
@@ -60,7 +61,8 @@ class _LoginScreenState extends State<LoginScreen> {
               Colors.red.shade700, // Une couleur rouge pour l'erreur
         ),
       );
-      print('DEBUG FLUTTER: Échec de la connexion. Client est null.');
+      // Supprimez ou commentez la ligne de débogage suivante :
+      // print('DEBUG FLUTTER: Échec de la connexion. Client est null.');
     }
   }
 
@@ -108,13 +110,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   _isLoading
                       ? CircularProgressIndicator(color: primaryColor)
                       : _buildAuthButton(
-                        icon: Icons.login_rounded,
-                        text: 'Se connecter',
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF4A6572), Color(0xFF4A6572)],
+                          icon: Icons.login_rounded,
+                          text: 'Se connecter',
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF4A6572), Color(0xFF4A6572)],
+                          ),
+                          onPressed: _login,
                         ),
-                        onPressed: _login,
-                      ),
                   const SizedBox(height: 12),
                   TextButton(
                     onPressed: () {
@@ -166,18 +168,18 @@ class _LoginScreenState extends State<LoginScreen> {
         suffixIcon:
             isPasswordField
                 ? IconButton(
-                  icon: Icon(
-                    _isPasswordVisible
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                    color: primaryColor,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _isPasswordVisible = !_isPasswordVisible;
-                    });
-                  },
-                )
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: primaryColor,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  )
                 : null,
       ),
     );

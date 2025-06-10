@@ -10,16 +10,16 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_svg: ^2.0.7 # For SVG images
+  google_fonts: ^6.2.1 # Gardez cette version ou la plus récente. Supprimez l'autre.
+  flutter_svg: ^2.0.7
   sqflite: ^2.0.0+4
   path_provider: ^2.0.8
-  http: ^1.4.0 # For HTTP requests
-  google_fonts: ^6.1.0
+  http: ^1.4.0
   cupertino_icons: ^1.0.8
-  provider: ^6.0.5 # For state management, if you choose Provider
+  provider: ^6.0.5
   fl_chart: ^0.68.0
-  intl: ^0.18.1 # Utilisez la dernière version stable
-  image_picker: ^1.1.0 # Vérifiez la dernière version sur pub.dev
+  intl: ^0.18.1
+  image_picker: ^1.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
