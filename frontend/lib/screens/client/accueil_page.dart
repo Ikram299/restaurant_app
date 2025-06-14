@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../client/plats_page.dart'; // Ensure this path is correct
-import '../client/reservation_page.dart'; // Ensure this path is correct
-import '../client/detail_plat_page.dart'; // Ensure this path is correct
-import '../client/cart_page.dart'; // MODIFICATION: Import the new CartPage
+import 'package:restaurant_app/models/plat.dart';
+import '../client/plats_page.dart';
+import '../client/reservation_page.dart';
+import '../client/detail_plat_page.dart';
+import '../client/cart_page.dart';
+import '../client/favoris_page.dart'; // NEW: Import FavorisPage
+import 'package:restaurant_app/services/favoris_service.dart'; // NEW: Import FavorisService
 
 class AccueilPage extends StatefulWidget {
   const AccueilPage({super.key});
@@ -12,12 +15,59 @@ class AccueilPage extends StatefulWidget {
   State<AccueilPage> createState() => _AccueilPageState();
 }
 
-class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin {
+class _AccueilPageState extends State<AccueilPage>
+    with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
 
-  // MODIFICATION: Keep track of cart item count (for demonstration)
   int _cartItemCount = 3; // Initial dummy count, adjust as needed
+
+  // NEW: Listen to favorite changes to update the UI if needed
+  late Stream<List<Plat>> _favorisStream;
+
+  // Search functionality additions
+  final TextEditingController _searchController = TextEditingController();
+  List<Map<String, dynamic>> _filteredDishes = [];
+
+  // Data for popular dishes (kept as provided, ensure 'id' is present)
+  final List<Map<String, dynamic>> popularDishes = [
+    {
+      'id': 'dish1', // Added ID
+      'name': 'Salade César Signature',
+      'price': 12.99,
+      'imageUrl':
+          'https://plus.unsplash.com/premium_photo-1664392002995-4ee10b7f91e5?q=80&w=2014&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+      'category': 'Entrées',
+      'description': 'Salade fraîche avec parmesan et croûtons maison',
+    },
+    {
+      'id': 'dish2', // Added ID
+      'name': 'Filet de Saumon Grillé',
+      'price': 25.50,
+      'imageUrl':
+          'https://plus.unsplash.com/premium_photo-1723478417559-2349252a3dda?q=80&w=1966&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+      'category': 'Plats',
+      'description': 'Saumon atlantique avec légumes de saison',
+    },
+    {
+      'id': 'dish3', // Added ID
+      'name': 'Burger Premium Wagyu',
+      'price': 22.20,
+      'imageUrl':
+          'https://plus.unsplash.com/premium_photo-1683619761492-639240d29bb5?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+      'category': 'Plats',
+      'description': 'Burger au bœuf wagyu avec frites maison',
+    },
+    {
+      'id': 'dish4', // Added ID
+      'name': 'Fondant au Chocolat',
+      'price': 9.50,
+      'imageUrl':
+          'https://images.unsplash.com/photo-1678969405727-1a1e2a572119?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+      'category': 'Desserts',
+      'description': 'Coulant chaud avec glace vanille',
+    },
+  ];
 
   @override
   void initState() {
@@ -29,11 +79,21 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
     _scaleAnimation = Tween<double>(begin: 1.0, end: 1.5).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
+
+    // Initialize filtered dishes with all popular dishes at the start
+    _filteredDishes = List.from(popularDishes);
+
+    // Initialize the favorite stream
+    _favorisStream = FavorisService().favorisStream;
+
+    // Add listener for search input changes
+    _searchController.addListener(_filterDishes);
   }
 
   @override
   void dispose() {
     _animationController.dispose();
+    _searchController.dispose(); // Dispose the search controller
     super.dispose();
   }
 
@@ -41,62 +101,29 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
     _animationController.forward().then((_) {
       _animationController.reverse();
     });
-    // MODIFICATION: Increment cart count on add (for demonstration)
     setState(() {
       _cartItemCount++;
     });
   }
 
+  // Method to filter dishes based on search query
+  void _filterDishes() {
+    String query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredDishes =
+          popularDishes.where((dish) {
+            final nameLower = dish['name'].toLowerCase();
+            final categoryLower = dish['category'].toLowerCase();
+            return nameLower.contains(query) || categoryLower.contains(query);
+          }).toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Define your colors (ensure consistency across your app)
     final Color primaryAppColor = const Color(0xFF4A6572);
     final Color accentColor = const Color(0xFFFF9800);
     final Color backgroundColor = const Color(0xFFD9E2E5);
-
-    // Data for popular dishes (kept as provided)
-    final List<Map<String, dynamic>> popularDishes = [
-      {
-        'name': 'Salade César Signature',
-        'price': 12.99,
-        'imageUrl': 'https://plus.unsplash.com/premium_photo-1664392002995-4ee10b7f91e5?q=80&w=2014&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        'category': 'Entrées',
-        'rating': 4.8,
-        'description': 'Salade fraîche avec parmesan et croûtons maison',
-        'calories': 320,
-        'isPopular': true,
-      },
-      {
-        'name': 'Filet de Saumon Grillé',
-        'price': 25.50,
-        'imageUrl': 'https://plus.unsplash.com/premium_photo-1723478417559-2349252a3dda?q=80&w=1966&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        'category': 'Plats',
-        'rating': 4.9,
-        'description': 'Saumon atlantique avec légumes de saison',
-        'calories': 450,
-        'isPopular': true,
-      },
-      {
-        'name': 'Burger Premium Wagyu',
-        'price': 22.20,
-        'imageUrl': 'https://plus.unsplash.com/premium_photo-1683619761492-639240d29bb5?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        'category': 'Plats',
-        'rating': 4.8,
-        'description': 'Burger au bœuf wagyu avec frites maison',
-        'calories': 680,
-        'isPopular': true,
-      },
-      {
-        'name': 'Fondant au Chocolat',
-        'price': 9.50,
-        'imageUrl': 'https://images.unsplash.com/photo-1678969405727-1a1e2a572119?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        'category': 'Desserts',
-        'rating': 4.9,
-        'description': 'Coulant chaud avec glace vanille',
-        'calories': 420,
-        'isPopular': true,
-      },
-    ];
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -110,36 +137,108 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
           },
         ),
         title: Text(
-          'Good Food', // Add a title to the AppBar for better branding
+          'Good Food',
           style: GoogleFonts.poppins(
             color: primaryAppColor,
             fontWeight: FontWeight.bold,
             fontSize: 22,
           ),
         ),
-        centerTitle: false, // Align title to start
+        centerTitle: false,
         actions: [
-          IconButton(
-            icon: Icon(Icons.search, color: primaryAppColor, size: 28),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Fonctionnalité de recherche à venir !', style: GoogleFonts.poppins()),
-                  backgroundColor: primaryAppColor,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  margin: const EdgeInsets.all(16),
+          // Search Bar integrated directly (Option 1: simpler)
+          Expanded(
+            // Use Expanded to allow the TextField to take available space
+            child: Padding(
+              padding: const EdgeInsets.only(
+                left: 8.0,
+              ), // Adjust padding as needed
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Rechercher un plat...',
+                  hintStyle: GoogleFonts.poppins(
+                    color: primaryAppColor.withOpacity(0.7),
+                  ),
+                  prefixIcon: Icon(Icons.search, color: primaryAppColor),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10.0),
                 ),
+                style: GoogleFonts.poppins(
+                  color: primaryAppColor,
+                  fontSize: 18,
+                ),
+                onSubmitted: (value) {
+                  // You can also trigger filter here if you only want it on submit
+                  // _filterDishes();
+                },
+              ),
+            ),
+          ),
+          // NEW: Favorites Icon
+          StreamBuilder<List<Plat>>(
+            stream: _favorisStream,
+            builder: (context, snapshot) {
+              final favoriteCount = snapshot.data?.length ?? 0;
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.favorite, // Changed to filled heart for favorites
+                      color: primaryAppColor,
+                      size: 28,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FavorisPage(),
+                        ),
+                      ).then((_) {
+                        // Refresh state if needed when returning from favorites page
+                        setState(() {});
+                      });
+                    },
+                    tooltip: 'Mes Favoris',
+                  ),
+                  if (favoriteCount > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: accentColor,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        child: Text(
+                          '$favoriteCount',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
               );
             },
-            tooltip: 'Rechercher',
           ),
           Stack(
             children: [
               IconButton(
-                icon: Icon(Icons.shopping_cart_outlined, color: primaryAppColor, size: 28),
+                icon: Icon(
+                  Icons.shopping_cart_outlined,
+                  color: primaryAppColor,
+                  size: 28,
+                ),
                 onPressed: () {
-                  // MODIFICATION: Navigate to CartPage
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const CartPage()),
@@ -147,7 +246,7 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
                 },
                 tooltip: 'Votre panier',
               ),
-              if (_cartItemCount > 0) // MODIFICATION: Only show badge if count > 0
+              if (_cartItemCount > 0)
                 Positioned(
                   right: 8,
                   top: 8,
@@ -162,7 +261,7 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
                       minHeight: 18,
                     ),
                     child: Text(
-                      '$_cartItemCount', // MODIFICATION: Use dynamic cart item count
+                      '$_cartItemCount',
                       style: GoogleFonts.poppins(
                         color: Colors.white,
                         fontSize: 11,
@@ -177,19 +276,20 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
           const SizedBox(width: 8),
         ],
       ),
-      body: SingleChildScrollView( // Essential for avoiding overflow
+      body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // --- Promotional Banner ---
             Container(
-              height: 200, // Fixed height is fine if content fits
+              height: 200,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
                 image: const DecorationImage(
                   image: NetworkImage(
-                      'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&q=80&w=1200'),
+                    'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&q=80&w=1200',
+                  ),
                   fit: BoxFit.cover,
                 ),
                 boxShadow: [
@@ -227,7 +327,7 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
                         Text(
                           'Offre Spéciale du Jour !',
                           style: GoogleFonts.poppins(
-                            fontSize: 22, // Adjusted slightly to fit better
+                            fontSize: 22,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
                             height: 1.2,
@@ -237,21 +337,26 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
                         Text(
                           'Jusqu\'à 30% de réduction sur notre menu du chef. Ne manquez pas ça !',
                           style: GoogleFonts.poppins(
-                            fontSize: 13, // Adjusted slightly to fit better
+                            fontSize: 13,
                             color: Colors.white70,
                           ),
-                          maxLines: 2, // Ensure text wraps if needed
-                          overflow: TextOverflow.ellipsis, // Prevents overflow
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 15),
                         ElevatedButton(
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Découvrez nos offres !', style: GoogleFonts.poppins()),
+                                content: Text(
+                                  'Découvrez nos offres !',
+                                  style: GoogleFonts.poppins(),
+                                ),
                                 backgroundColor: primaryAppColor,
                                 behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                                 margin: const EdgeInsets.all(16),
                               ),
                             );
@@ -261,7 +366,10 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
                             elevation: 5,
                           ),
                           child: Text(
@@ -292,34 +400,38 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
             ),
             const SizedBox(height: 20),
             SizedBox(
-              height: 130, // Keep height for categories
+              height: 130,
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: [
                   _buildCategory(
-                      context,
-                      'Entrées',
-                      'https://plus.unsplash.com/premium_photo-1664391861823-0108d5b5fe87?q=80&w=1949&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-                      primaryAppColor,
-                      accentColor),
+                    context,
+                    'Entrées',
+                    'https://plus.unsplash.com/premium_photo-1664391861823-0108d5b5fe87?q=80&w=1949&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+                    primaryAppColor,
+                    accentColor,
+                  ),
                   _buildCategory(
-                      context,
-                      'Plats',
-                      'https://plus.unsplash.com/premium_photo-1689596510332-89a72f02707d?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-                      primaryAppColor,
-                      accentColor),
+                    context,
+                    'Plats',
+                    'https://plus.unsplash.com/premium_photo-1689596510332-89a72f02707d?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+                    primaryAppColor,
+                    accentColor,
+                  ),
                   _buildCategory(
-                      context,
-                      'Desserts',
-                      'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1200',
-                      primaryAppColor,
-                      accentColor),
+                    context,
+                    'Desserts',
+                    'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1200',
+                    primaryAppColor,
+                    accentColor,
+                  ),
                   _buildCategory(
-                      context,
-                      'Boissons',
-                      'https://images.unsplash.com/photo-1497534446932-c925b458314e?q=80&w=1972&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-                      primaryAppColor,
-                      accentColor),
+                    context,
+                    'Boissons',
+                    'https://images.unsplash.com/photo-1497534446932-c925b458314e?q=80&w=1972&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+                    primaryAppColor,
+                    accentColor,
+                  ),
                 ],
               ),
             ),
@@ -329,7 +441,7 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded( // Solves the "RIGHT OVERFLOWED" issue for this text
+                Expanded(
                   child: Text(
                     'Nos Plats Populaires',
                     style: GoogleFonts.poppins(
@@ -337,14 +449,17 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
                       fontWeight: FontWeight.w700,
                       color: Colors.grey.shade800,
                     ),
-                    overflow: TextOverflow.ellipsis, // Ensures text doesn't overflow if too long
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 TextButton(
-                  onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const PlatsPage())),
+                  onPressed:
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PlatsPage(),
+                        ),
+                      ),
                   style: TextButton.styleFrom(
                     foregroundColor: primaryAppColor,
                     padding: EdgeInsets.zero,
@@ -364,19 +479,26 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
             const SizedBox(height: 20),
             GridView.builder(
               shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(), // Prevents nested scrolling
+              physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 0.75, // Adjusted for better item proportion
+                childAspectRatio:
+                    0.75, // Adjust this if items still look squeezed
                 crossAxisSpacing: 18,
                 mainAxisSpacing: 18,
               ),
-              itemCount: popularDishes.length,
-              itemBuilder: (context, index) => _buildDishItem(
+              itemCount:
+                  _filteredDishes.length, // Use _filteredDishes for the grid
+              itemBuilder: (context, index) {
+                final dishMap = _filteredDishes[index];
+                final Plat plat = Plat.fromJson(dishMap);
+                return _buildDishItem(
                   context,
-                  popularDishes[index],
+                  plat,
                   primaryAppColor,
-                  accentColor),
+                  accentColor,
+                );
+              },
             ),
             const SizedBox(height: 35),
 
@@ -400,20 +522,23 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.calendar_month_outlined,
-                          color: primaryAppColor, size: 30),
+                      Icon(
+                        Icons.calendar_month_outlined,
+                        color: primaryAppColor,
+                        size: 30,
+                      ),
                       const SizedBox(width: 12),
-                      Expanded( // Ensures the text fits within the available space
+                      Expanded(
                         child: Text(
                           'Réservez Votre Table Dès Maintenant !',
                           style: GoogleFonts.poppins(
-                            fontSize: 19, // Adjusted slightly for better fitting
+                            fontSize: 19,
                             fontWeight: FontWeight.w700,
                             color: Colors.grey.shade800,
                             height: 1.3,
                           ),
-                          maxLines: 2, // Allow text to wrap
-                          overflow: TextOverflow.ellipsis, // Prevent overflow if it still doesn't fit
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -431,20 +556,27 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const ReservationPage())),
+                      onPressed:
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ReservationPage(),
+                            ),
+                          ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryAppColor,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15)),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
                         elevation: 7,
                         shadowColor: primaryAppColor.withOpacity(0.4),
                       ),
-                      icon: const Icon(Icons.table_restaurant,
-                          color: Colors.white, size: 22),
+                      icon: const Icon(
+                        Icons.table_restaurant,
+                        color: Colors.white,
+                        size: 22,
+                      ),
                       label: Text(
                         'Réserver une table',
                         style: GoogleFonts.poppins(
@@ -458,7 +590,7 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
                 ],
               ),
             ),
-            const SizedBox(height: 30), // Increased bottom spacing
+            const SizedBox(height: 30),
           ],
         ),
       ),
@@ -466,16 +598,26 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
   }
 
   /// Builds a single category item.
-  Widget _buildCategory(BuildContext context, String title, String imageUrl,
-      Color primaryColor, Color accentColor) {
+  Widget _buildCategory(
+    BuildContext context,
+    String title,
+    String imageUrl,
+    Color primaryColor,
+    Color accentColor,
+  ) {
     return GestureDetector(
       onTap: () {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Catégorie "$title" sélectionnée !', style: GoogleFonts.poppins()),
+            content: Text(
+              'Catégorie "$title" sélectionnée !',
+              style: GoogleFonts.poppins(),
+            ),
             backgroundColor: primaryColor,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
             margin: const EdgeInsets.all(15),
           ),
         );
@@ -486,8 +628,8 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
         child: Column(
           children: [
             Container(
-              width: 80, // Increased size for category image for better visibility
-              height: 80, // Increased size for category image
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
                 color: primaryColor.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(40),
@@ -505,8 +647,12 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
                 child: Image.network(
                   imageUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const Icon(Icons.broken_image, size: 50, color: Colors.grey), // Larger error icon
+                  errorBuilder:
+                      (context, error, stackTrace) => const Icon(
+                        Icons.broken_image,
+                        size: 50,
+                        color: Colors.grey,
+                      ),
                 ),
               ),
             ),
@@ -515,9 +661,10 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
               title,
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
-                  fontSize: 15, // Adjusted for better fit and readability
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade800),
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade800,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -528,16 +675,21 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
   }
 
   /// Builds a single dish item for the popular dishes section.
-  Widget _buildDishItem(BuildContext context, Map<String, dynamic> dish,
-      Color primaryColor, Color accentColor) {
+  Widget _buildDishItem(
+    BuildContext context,
+    Plat plat,
+    Color primaryColor,
+    Color accentColor,
+  ) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => DetailPlatPage(dish: dish),
-          ),
-        );
+          MaterialPageRoute(builder: (context) => DetailPlatPage(plat: plat)),
+        ).then((_) {
+          // When returning from DetailPlatPage, refresh the state to update favorite icon
+          setState(() {});
+        });
       },
       child: Card(
         clipBehavior: Clip.antiAlias,
@@ -548,16 +700,20 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
           children: [
             Expanded(
               child: Image.network(
-                dish['imageUrl'],
+                plat.imageUrl ?? '',
                 fit: BoxFit.cover,
                 width: double.infinity,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  color: Colors.grey[300],
-                  child: const Center(
-                    child: Icon(Icons.broken_image,
-                        size: 40, color: Colors.grey),
-                  ),
-                ),
+                errorBuilder:
+                    (context, error, stackTrace) => Container(
+                      color: Colors.grey[300],
+                      child: const Center(
+                        child: Icon(
+                          Icons.broken_image,
+                          size: 40,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
               ),
             ),
             Padding(
@@ -566,10 +722,10 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    dish['name'],
+                    plat.nomPlat,
                     style: GoogleFonts.poppins(
                       fontWeight: FontWeight.bold,
-                      fontSize: 14, // Adjusted slightly for better fitting within card
+                      fontSize: 14,
                       color: Colors.grey.shade800,
                     ),
                     maxLines: 1,
@@ -579,12 +735,74 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        '\$${dish['price'].toStringAsFixed(2)}',
-                        style: GoogleFonts.poppins(
-                          color: primaryColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15, // Adjusted for better fitting
+                      Expanded(
+                        // <--- Added Expanded here for price text
+                        child: Text(
+                          '€${plat.prix.toStringAsFixed(2)}',
+                          style: GoogleFonts.poppins(
+                            color: primaryColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                          overflow:
+                              TextOverflow
+                                  .ellipsis, // Ensure price also handles overflow
+                          maxLines: 1,
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 8,
+                      ), // Small space between price and icons
+                      // NEW: Favorite icon
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            if (FavorisService().isFavorite(plat)) {
+                              FavorisService().removeFavorite(plat.id);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    '${plat.nomPlat} retiré des favoris',
+                                    style: GoogleFonts.poppins(),
+                                  ),
+                                  duration: const Duration(seconds: 1),
+                                  backgroundColor: primaryColor,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  margin: const EdgeInsets.all(16),
+                                ),
+                              );
+                            } else {
+                              FavorisService().addFavorite(plat);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    '${plat.nomPlat} ajouté aux favoris !',
+                                    style: GoogleFonts.poppins(),
+                                  ),
+                                  duration: const Duration(seconds: 1),
+                                  backgroundColor: accentColor,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  margin: const EdgeInsets.all(16),
+                                ),
+                              );
+                            }
+                          });
+                        },
+                        child: Icon(
+                          FavorisService().isFavorite(plat)
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color:
+                              FavorisService().isFavorite(plat)
+                                  ? Colors.red
+                                  : primaryColor,
+                          size: 24,
                         ),
                       ),
                       ScaleTransition(
@@ -594,12 +812,16 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
                             _triggerAddToCartAnimation();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('${dish['name']} ajouté au panier'),
+                                content: Text(
+                                  '${plat.nomPlat} ajouté au panier',
+                                ),
                                 duration: const Duration(seconds: 1),
-                                backgroundColor: primaryColor, // Added background color for consistency
-                                behavior: SnackBarBehavior.floating, // Consistent snackbar style
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), // Consistent snackbar style
-                                margin: const EdgeInsets.all(16), // Consistent snackbar style
+                                backgroundColor: primaryColor,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                margin: const EdgeInsets.all(16),
                               ),
                             );
                           },
@@ -609,8 +831,11 @@ class _AccueilPageState extends State<AccueilPage> with TickerProviderStateMixin
                               color: primaryColor,
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: const Icon(Icons.add_shopping_cart,
-                                size: 20, color: Colors.white),
+                            child: const Icon(
+                              Icons.add_shopping_cart,
+                              size: 20,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),

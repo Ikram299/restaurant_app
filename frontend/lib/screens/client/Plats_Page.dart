@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../client/detail_plat_page.dart';
+import 'package:restaurant_app/models/plat.dart'; // Importez votre modèle Plat
+import 'package:restaurant_app/services/dish_service.dart'; // Importez votre service DishService
+import '../client/detail_plat_page.dart'; // Assurez-vous que ce chemin est correct
 
 class PlatsPage extends StatefulWidget {
   const PlatsPage({super.key});
@@ -9,7 +11,10 @@ class PlatsPage extends StatefulWidget {
 }
 
 class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
-  // State variables
+  // Services
+  final DishService _dishService = DishService();
+
+  // State variables for filtering and display
   String _selectedCategory = 'Tous';
   String _searchQuery = '';
   double _maxPrice = 100;
@@ -21,6 +26,9 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
 
   // Data
+  late Future<List<Plat>> _platsFuture; // Future pour les plats du backend
+  List<Plat> _allPlats = []; // Tous les plats non filtrés (Type Plat)
+
   final List<String> _categories = [
     'Tous',
     'Entrées',
@@ -28,108 +36,22 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
     'Desserts',
     'Boissons',
   ];
-  final List<Map<String, dynamic>> _dishes = [
-    {
-      'name': 'Salade César Signature',
-      'price': 12.99,
-      'category': 'Entrées',
-      'imageUrl':
-          'https://plus.unsplash.com/premium_photo-1664392002995-4ee10b7f91e5?q=80&w=2014&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      'rating': 4.8,
-      'description': 'Salade fraîche avec parmesan et croûtons maison',
-      'calories': 320,
-      'isPopular': true,
-    },
-    {
-      'name': 'Filet de Saumon Grillé',
-      'price': 25.50,
-      'category': 'Plats',
-      'imageUrl':
-          'https://plus.unsplash.com/premium_photo-1723478417559-2349252a3dda?q=80&w=1966&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      'rating': 4.9,
-      'description': 'Saumon atlantique avec légumes de saison',
-      'calories': 450,
-      'isPopular': true,
-    },
-    {
-      'name': 'Crème brûlée',
-      'price': 8.00,
-      'category': 'Desserts',
-      'imageUrl':
-          'https://plus.unsplash.com/premium_photo-1713816698618-c0f76a174627?q=80&w=1976&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      'rating': 4.7,
-      'description':
-          'Tiramisu traditionnel fait maison', // Corrected description
-      'calories': 280,
-      'isPopular': false,
-    },
-    {
-      'name': 'Jus d\'Orange Pressé',
-      'price': 5.00,
-      'category': 'Boissons',
-      'imageUrl':
-          'https://images.unsplash.com/photo-1607690506833-498e04ab3ffa?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      'rating': 4.5,
-      'description': 'Jus d\'orange frais du jour',
-      'calories': 120,
-      'isPopular': false,
-    },
-    {
-      'name': 'Velouté de Champignons',
-      'price': 9.50,
-      'category': 'Entrées',
-      'imageUrl':
-          'https://plus.unsplash.com/premium_photo-1729104879634-2300f607f29d?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      'rating': 4.6,
-      'description': 'Soupe crémeuse aux champignons des bois',
-      'calories': 180,
-      'isPopular': false,
-    },
-    {
-      'name': 'Burger Premium Wagyu',
-      'price': 22.20,
-      'category': 'Plats',
-      'imageUrl':
-          'https://plus.unsplash.com/premium_photo-1683619761492-639240d29bb5?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      'rating': 4.8,
-      'description': 'Burger au bœuf wagyu avec frites maison',
-      'calories': 680,
-      'isPopular': true,
-    },
-    {
-      'name': 'Fondant au Chocolat',
-      'price': 9.50,
-      'category': 'Desserts',
-      'imageUrl':
-          'https://images.unsplash.com/photo-1678969405727-1a1e2a572119?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      'rating': 4.9,
-      'description': 'Coulant chaud avec glace vanille',
-      'calories': 420,
-      'isPopular': true,
-    },
-    {
-      'name': 'Thé Glacé Maison',
-      'price': 4.50,
-      'category': 'Boissons',
-      'imageUrl':
-          'https://plus.unsplash.com/premium_photo-1723601131033-e9d37e13e44f?q=80&w=2061&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      'rating': 4.4,
-      'description': 'Thé noir glacé aux fruits rouges',
-      'calories': 80,
-      'isPopular': false,
-    },
-  ];
 
-  // Computed property for filtered dishes
-  List<Map<String, dynamic>> get _filteredDishes {
-    return _dishes.where((dish) {
+  // Propriété calculée pour les plats filtrés
+  List<Plat> get _filteredPlats {
+    return _allPlats.where((plat) {
+      // Itère sur Plat
       final bool categoryMatch =
-          _selectedCategory == 'Tous' || dish['category'] == _selectedCategory;
-      final bool priceMatch = dish['price'] <= _maxPrice;
+          _selectedCategory == 'Tous' ||
+          plat.categorie == _selectedCategory; // Utilise plat.categorie
+      final bool priceMatch = plat.prix <= _maxPrice; // Utilise plat.prix
       final bool searchMatch =
           _searchQuery.isEmpty ||
-          dish['name'].toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          dish['description'].toLowerCase().contains(
+          plat.nomPlat.toLowerCase().contains(
+            _searchQuery.toLowerCase(),
+          ) || // Utilise plat.nomPlat
+          plat.description.toLowerCase().contains(
+            // Utilise plat.description
             _searchQuery.toLowerCase(),
           );
       return categoryMatch && priceMatch && searchMatch;
@@ -146,47 +68,80 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
-    _animationController.forward();
+    _fetchPlats(); // Appelle la fonction pour charger les plats
+    _searchController.addListener(
+      _updateSearchQuery,
+    ); // Écoute les changements dans la barre de recherche
   }
 
   @override
   void dispose() {
     _animationController.dispose();
+    _searchController.removeListener(_updateSearchQuery);
     _searchController.dispose();
     super.dispose();
+  }
+
+  /// Charge les plats depuis le backend.
+  Future<void> _fetchPlats() async {
+    setState(() {
+      _platsFuture = _dishService.fetchDishes(); // Appelle le service
+    });
+    try {
+      _allPlats = await _platsFuture;
+      _updateSearchQuery(); // Applique le filtre initial après le chargement
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Erreur lors du chargement des plats: ${e.toString()}',
+            ),
+          ),
+        );
+      }
+      _allPlats = []; // Vide la liste en cas d'erreur
+    }
+  }
+
+  /// Met à jour la requête de recherche et filtre les plats.
+  void _updateSearchQuery() {
+    setState(() {
+      _searchQuery = _searchController.text;
+      // Le getter _filteredPlats est recalculé automatiquement à chaque setState
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFD9E2E5), // Consistent background
+      backgroundColor: const Color(0xFFD9E2E5), // Fond cohérent
       body: CustomScrollView(
         slivers: [
           _buildAppBar(),
           SliverToBoxAdapter(child: _buildSearchAndFilters()),
-          // Add a small spacer to ensure filter content doesn't butt up against the grid/list
-          const SliverToBoxAdapter(child: SizedBox(height: 20)),
-          _buildDishesGrid(),
-          // Add a padding at the bottom of the scroll view
-          // This ensures the last items are not cut off and there's space to scroll
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+          const SliverToBoxAdapter(child: SizedBox(height: 20)), // Espaceur
+          _buildPlatsGrid(), // Construit la grille/liste de plats
+          const SliverToBoxAdapter(
+            child: SizedBox(height: 24),
+          ), // Rembourrage en bas
         ],
       ),
     );
   }
 
-  /// Builds the custom SliverAppBar for the menu.
+  /// Construit la barre d'application personnalisée pour le menu.
   Widget _buildAppBar() {
     return SliverAppBar(
-      toolbarHeight: 60, // Reduced toolbar height
+      toolbarHeight: 60, // Hauteur réduite de la barre d'outils
       expandedHeight:
-          60, // Set expandedHeight equal to toolbarHeight to remove extra space
+          60, // Hauteur étendue égale à la hauteur de la barre d'outils
       floating: true,
       pinned: true,
-      backgroundColor: const Color(0xFFD9E2E5), // Consistent background
+      backgroundColor: const Color(0xFFD9E2E5), // Fond cohérent
       elevation: 0,
       title: const Text(
-        'Nos Plats', // Added title to AppBar for better context
+        'Nos Plats', // Titre ajouté à l'AppBar
         style: TextStyle(
           fontWeight: FontWeight.w700,
           fontSize: 24,
@@ -194,48 +149,50 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
           fontFamily: 'Poppins',
         ),
       ),
-      centerTitle: false, // Align title to start
+      centerTitle: false, // Aligner le titre au début
       actions: [
         IconButton(
           icon: Icon(
             _isGridView
                 ? Icons.view_list_rounded
-                : Icons.grid_view_rounded, // Rounded icons
-            color: Colors.grey.shade700, // Consistent icon color
+                : Icons.grid_view_rounded, // Icônes arrondies
+            color: Colors.grey.shade700, // Couleur d'icône cohérente
             size: 24,
           ),
           onPressed: () {
             setState(() {
               _isGridView = !_isGridView;
-              // Reset animation for a fresh fade-in when view changes
+              // Réinitialiser l'animation pour un nouvel fondu entrant
               _animationController.reset();
               _animationController.forward();
             });
           },
         ),
-        const SizedBox(width: 16), // Adjusted spacing
+        const SizedBox(width: 16), // Espacement ajusté
       ],
     );
   }
 
-  /// Builds the search bar, category filters, and price slider.
+  /// Construit la barre de recherche, les filtres de catégorie et le curseur de prix.
   Widget _buildSearchAndFilters() {
     return Container(
-      color: const Color(0xFFD9E2E5), // Consistent background
+      color: const Color(0xFFD9E2E5), // Fond cohérent
       padding: const EdgeInsets.symmetric(
         horizontal: 24,
         vertical: 0,
-      ), // Adjusted padding to remove top space
+      ), // Rembourrage ajusté pour supprimer l'espace du haut
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Search Bar
+          // Barre de recherche
           Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16), // Softer rounded corners
+              borderRadius: BorderRadius.circular(
+                16,
+              ), // Coins arrondis plus doux
               boxShadow: const [
                 BoxShadow(
-                  color: Colors.black12, // Consistent shadow
+                  color: Colors.black12, // Ombre cohérente
                   blurRadius: 8,
                   spreadRadius: 1,
                 ),
@@ -249,19 +206,19 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
                   color: Colors.grey.shade500,
                   fontSize: 15,
                   fontFamily: 'Poppins',
-                ), // Consistent font
+                ), // Police cohérente
                 prefixIcon: Icon(
                   Icons.search,
                   color: const Color(0xFF4A6572),
                   size: 22,
-                ), // Consistent color and size
+                ), // Couleur et taille cohérentes
                 suffixIcon:
                     _searchQuery.isNotEmpty
                         ? IconButton(
                           icon: Icon(
                             Icons.clear_rounded,
                             color: Colors.grey.shade600,
-                          ), // Rounded icon
+                          ), // Icône arrondie
                           onPressed: () {
                             _searchController.clear();
                             setState(() => _searchQuery = '');
@@ -269,55 +226,62 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
                         )
                         : null,
                 filled: true,
-                fillColor: Colors.white, // White fill for text fields
+                fillColor:
+                    Colors.white, // Remplissage blanc pour les champs de texte
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(
                     16,
-                  ), // Softer rounded corners
-                  borderSide: BorderSide.none, // No border for cleaner look
+                  ), // Coins arrondis plus doux
+                  borderSide:
+                      BorderSide
+                          .none, // Pas de bordure pour un look plus propre
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(
                     16,
-                  ), // Softer rounded corners
+                  ), // Coins arrondis plus doux
                   borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(
                     16,
-                  ), // Softer rounded corners
+                  ), // Coins arrondis plus doux
                   borderSide: BorderSide(
                     color: const Color(0xFF4A6572),
                     width: 1.5,
-                  ), // Consistent focus color
+                  ), // Couleur de focus cohérente
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 14,
-                ), // Adjusted padding
+                ), // Rembourrage ajusté
               ),
               onChanged: (value) => setState(() => _searchQuery = value),
             ),
           ),
           const SizedBox(height: 25),
 
-          // Categories
+          // Catégories
           Text(
             'Catégories',
             style: TextStyle(
               fontWeight:
-                  FontWeight.w700, // Matching WelcomeScreen title weight
-              fontSize: 20, // Slightly larger for section title
+                  FontWeight
+                      .w700, // Poids de titre correspondant à WelcomeScreen
+              fontSize: 20, // Légèrement plus grand pour le titre de section
               color:
-                  Colors.grey.shade800, // Consistent with WelcomeScreen title
-              fontFamily: 'Poppins', // Consistent font
+                  Colors
+                      .grey
+                      .shade800, // Cohérent avec le titre de WelcomeScreen
+              fontFamily: 'Poppins', // Police cohérente
             ),
           ),
           const SizedBox(height: 15),
 
-          // Fixed category buttons with consistent styling
+          // Boutons de catégorie fixes avec un style cohérent
           SizedBox(
-            height: 40, // Slightly reduced height for category buttons
+            height:
+                40, // Hauteur légèrement réduite pour les boutons de catégorie
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: _categories.length,
@@ -325,7 +289,7 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
                   (context, index) => Padding(
                     padding: const EdgeInsets.only(
                       right: 12,
-                    ), // Consistent spacing
+                    ), // Espacement cohérent
                     child: GestureDetector(
                       onTap: () {
                         setState(() {
@@ -339,22 +303,22 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
                         padding: const EdgeInsets.symmetric(
                           horizontal: 18,
                           vertical: 8,
-                        ), // Adjusted padding
+                        ), // Rembourrage ajusté
                         decoration: BoxDecoration(
                           color:
                               _selectedCategory == _categories[index]
                                   ? const Color(
                                     0xFF4A6572,
-                                  ) // Dark blue for selected
+                                  ) // Bleu foncé pour sélectionné
                                   : Colors.white,
                           borderRadius: BorderRadius.circular(
                             12,
-                          ), // Slightly less rounded for categories
+                          ), // Légèrement moins arrondi pour les catégories
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black12.withOpacity(
                                 0.08,
-                              ), // Consistent shadow
+                              ), // Ombre cohérente
                               blurRadius: 6,
                               spreadRadius: 0.5,
                             ),
@@ -368,8 +332,8 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
                                     ? Colors.white
                                     : Colors.grey.shade700,
                             fontWeight: FontWeight.w600,
-                            fontSize: 14, // Slightly reduced font size
-                            fontFamily: 'Poppins', // Consistent font
+                            fontSize: 14, // Taille de police légèrement réduite
+                            fontFamily: 'Poppins', // Police cohérente
                           ),
                         ),
                       ),
@@ -379,19 +343,22 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
           ),
           const SizedBox(height: 25),
 
-          // Price Filter
+          // Filtre de prix
           Text(
             'Budget maximum',
             style: TextStyle(
               fontWeight:
-                  FontWeight.w700, // Matching WelcomeScreen title weight
-              fontSize: 20, // Slightly larger for section title
+                  FontWeight
+                      .w700, // Poids de titre correspondant à WelcomeScreen
+              fontSize: 20, // Légèrement plus grand pour le titre de section
               color:
-                  Colors.grey.shade800, // Consistent with WelcomeScreen title
-              fontFamily: 'Poppins', // Consistent font
+                  Colors
+                      .grey
+                      .shade800, // Cohérent avec le titre de WelcomeScreen
+              fontFamily: 'Poppins', // Police cohérente
             ),
           ),
-          const SizedBox(height: 10), // Reduced spacing
+          const SizedBox(height: 10), // Espacement réduit
           Row(
             children: [
               Expanded(
@@ -399,16 +366,16 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
                   data: SliderThemeData(
                     activeTrackColor: const Color(
                       0xFF4A6572,
-                    ), // Consistent accent color
+                    ), // Couleur d'accentuation cohérente
                     inactiveTrackColor: Colors.grey.shade300,
                     thumbColor: const Color(0xFF4A6572),
                     overlayColor: const Color(
                       0xFF4A6572,
-                    ).withOpacity(0.2), // Consistent overlay
+                    ).withOpacity(0.2), // Superposition cohérente
                     thumbShape: const RoundSliderThumbShape(
                       enabledThumbRadius: 10,
-                    ), // Slightly larger thumb
-                    trackHeight: 6, // Slightly thicker track
+                    ), // Curseur légèrement plus grand
+                    trackHeight: 6, // Piste légèrement plus épaisse
                   ),
                   child: Slider(
                     value: _maxPrice,
@@ -424,10 +391,10 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 8,
-                ), // Adjusted padding
+                ), // Rembourrage ajusté
                 decoration: BoxDecoration(
-                  color: Colors.white, // White background for price display
-                  borderRadius: BorderRadius.circular(12), // Rounded corners
+                  color: Colors.white, // Fond blanc pour l'affichage du prix
+                  borderRadius: BorderRadius.circular(12), // Coins arrondis
                   boxShadow: const [
                     BoxShadow(
                       color: Colors.black12,
@@ -437,12 +404,14 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
                   ],
                 ),
                 child: Text(
-                  '\$${_maxPrice.toInt()}',
+                  '€${_maxPrice.toInt()}', // Utilise le symbole euro
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF4A6572), // Consistent accent color
+                    color: const Color(
+                      0xFF4A6572,
+                    ), // Couleur d'accentuation cohérente
                     fontSize: 16,
-                    fontFamily: 'Poppins', // Consistent font
+                    fontFamily: 'Poppins', // Police cohérente
                   ),
                 ),
               ),
@@ -453,12 +422,72 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
     );
   }
 
-  /// Builds the grid or list of dishes based on _isGridView.
-  Widget _buildDishesGrid() {
-    if (_filteredDishes.isEmpty) {
+  /// Construit la grille ou la liste des plats.
+  Widget _buildPlatsGrid() {
+    // Utilisation de _filteredPlats
+    if (_filteredPlats.isEmpty &&
+        _searchQuery.isEmpty &&
+        _selectedCategory == 'Tous' &&
+        _maxPrice == 100) {
+      // Si la liste est vide et aucun filtre n'est appliqué (avant le chargement ou si la base est vide)
+      return SliverFillRemaining(
+        child: FutureBuilder<List<Plat>>(
+          // Utilisation du Future pour gérer l'état de chargement
+          future: _platsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  'Erreur: ${snapshot.error}',
+                  textAlign: TextAlign.center,
+                ),
+              );
+            } else if (snapshot.hasData && snapshot.data!.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.food_bank_outlined,
+                      size: 80,
+                      color: Colors.grey.shade400,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Aucun plat disponible pour le moment.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey.shade600,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return Center(
+              child: Text(
+                'Aucun plat ne correspond à vos critères.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: 'Poppins',
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    } else if (_filteredPlats.isEmpty) {
+      // Si la liste est vide après application des filtres
       return SliverToBoxAdapter(
         child: Padding(
-          padding: const EdgeInsets.all(24.0), // Consistent padding
+          padding: const EdgeInsets.all(24.0), // Rembourrage cohérent
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -466,7 +495,7 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
                 Icons.food_bank_outlined,
                 size: 80,
                 color: Colors.grey.shade400,
-              ), // Slightly darker grey
+              ), // Gris légèrement plus foncé
               const SizedBox(height: 16),
               Text(
                 'Aucun plat trouvé',
@@ -474,7 +503,7 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
                   fontSize: 18,
                   color: Colors.grey.shade600,
                   fontWeight: FontWeight.w500,
-                  fontFamily: 'Poppins', // Consistent font
+                  fontFamily: 'Poppins', // Police cohérente
                 ),
               ),
               const SizedBox(height: 8),
@@ -484,7 +513,7 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey.shade500,
-                  fontFamily: 'Poppins', // Consistent font
+                  fontFamily: 'Poppins', // Police cohérente
                 ),
               ),
             ],
@@ -492,31 +521,30 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
         ),
       );
     }
+
     return SliverPadding(
       padding: const EdgeInsets.symmetric(
         horizontal: 24,
         vertical: 0,
-      ), // Removed top vertical padding as it's now handled by the SizedBox
+      ), // Rembourrage vertical supérieur supprimé
       sliver:
           _isGridView
               ? SliverGrid(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  // **THE KEY CHANGE FOR 2.9 PIXEL OVERFLOW**
-                  // A lower childAspectRatio means the card will be TALLER for its width.
-                  // You had 0.72, which was slightly too short.
-                  // 0.65 or 0.6 is a good starting point for a two-column grid with image and text below.
                   childAspectRatio:
-                      0.65, // Adjust this value. Try 0.65, 0.6, or even 0.58 if needed.
-                  crossAxisSpacing: 16, // Adjusted spacing slightly
-                  mainAxisSpacing: 16, // Adjusted spacing slightly
+                      0.65, // Ajuster cette valeur selon le besoin
+                  crossAxisSpacing: 16, // Espacement ajusté
+                  mainAxisSpacing: 16, // Espacement ajusté
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) => FadeTransition(
                     opacity: _fadeAnimation,
-                    child: _buildDishCard(_filteredDishes[index]),
+                    child: _buildPlatCard(
+                      _filteredPlats[index],
+                    ), // Construit la carte de plat
                   ),
-                  childCount: _filteredDishes.length,
+                  childCount: _filteredPlats.length,
                 ),
               )
               : SliverList(
@@ -525,30 +553,35 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
                     opacity: _fadeAnimation,
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 15),
-                      child: _buildDishListTile(_filteredDishes[index]),
+                      child: _buildPlatListTile(
+                        _filteredPlats[index],
+                      ), // Construit l'élément de liste de plat
                     ),
                   ),
-                  childCount: _filteredDishes.length,
+                  childCount: _filteredPlats.length,
                 ),
               ),
     );
   }
 
-  /// Builds a single dish card for the grid view.
-  Widget _buildDishCard(Map<String, dynamic> dish) {
+  /// Construit une carte de plat pour la vue en grille.
+  Widget _buildPlatCard(Plat plat) {
+    // Type Plat
     return GestureDetector(
       onTap:
           () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => DetailPlatPage(dish: dish)),
+            MaterialPageRoute(
+              builder: (context) => DetailPlatPage(plat: plat),
+            ), // Passe l'objet Plat
           ),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16), // Consistent rounded corners
+          borderRadius: BorderRadius.circular(16), // Coins arrondis cohérents
           boxShadow: const [
             BoxShadow(
-              color: Colors.black12, // Consistent shadow
+              color: Colors.black12, // Ombre cohérente
               blurRadius: 8,
               spreadRadius: 1,
             ),
@@ -558,7 +591,7 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              flex: 3, // Image takes 3 parts of available height
+              flex: 3, // L'image prend 3 parties de la hauteur disponible
               child: Stack(
                 children: [
                   ClipRRect(
@@ -566,87 +599,79 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
                       topLeft: Radius.circular(16),
                       topRight: Radius.circular(16),
                     ),
-                    child: Image.network(
-                      dish['imageUrl'],
-                      width: double.infinity,
-                      height: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder:
-                          (context, error, stackTrace) => Container(
-                            color: Colors.grey.shade200,
-                            child: Center(
-                              child: Icon(
-                                Icons.broken_image_rounded,
-                                size: 50,
-                                color: Colors.grey.shade400,
-                              ), // Rounded icon
+                    child:
+                        plat.imageUrl != null && plat.imageUrl!.isNotEmpty
+                            ? Image.network(
+                              plat.imageUrl!, // Utilise plat.imageUrl
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder:
+                                  (context, error, stackTrace) => Container(
+                                    color: Colors.grey.shade200,
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.broken_image_rounded,
+                                        size: 50,
+                                        color: Colors.grey.shade400,
+                                      ), // Icône arrondie
+                                    ),
+                                  ),
+                            )
+                            : Container(
+                              // Repli si pas d'URL d'image
+                              width: double.infinity,
+                              height: double.infinity,
+                              color: Colors.grey.shade200,
+                              child: Center(
+                                child: Icon(
+                                  Icons.fastfood_outlined,
+                                  size: 50,
+                                  color: Colors.grey.shade400,
+                                ),
+                              ),
                             ),
-                          ),
-                    ),
                   ),
-                  if (dish['isPopular'])
-                    Positioned(
-                      top: 10,
-                      left: 10,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.red.shade500,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          'Populaire',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'Poppins', // Consistent font
-                          ),
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
             Expanded(
-              flex: 2, // Text content takes 2 parts of available height
+              flex:
+                  2, // Le contenu texte prend 2 parties de la hauteur disponible
               child: Padding(
                 padding: const EdgeInsets.all(
                   12,
-                ), // Adjusted padding to give more space
+                ), // Rembourrage ajusté pour plus d'espace
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment:
                       MainAxisAlignment
-                          .spaceBetween, // Distribute space better for price and name
+                          .spaceBetween, // Distribuer l'espace pour le prix et le nom
                   children: [
                     Text(
-                      dish['name'],
+                      plat.nomPlat, // Utilise plat.nomPlat
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        fontSize: 14, // Keep font size reasonable
-                        color: Colors.grey.shade800, // Consistent text color
-                        fontFamily: 'Poppins', // Consistent font
+                        fontSize: 14, // Taille de police raisonnable
+                        color:
+                            Colors.grey.shade800, // Couleur de texte cohérente
+                        fontFamily: 'Poppins', // Police cohérente
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    // Removed Spacer() here, let MainAxisAlignment.spaceBetween handle it
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '\$${dish['price'].toStringAsFixed(2)}',
+                          '€${plat.prix.toStringAsFixed(2)}', // Utilise plat.prix
                           style: TextStyle(
                             color: const Color(
                               0xFF4A6572,
-                            ), // Consistent accent color
-                            fontWeight: FontWeight.w700, // Bolder price
+                            ), // Couleur d'accentuation cohérente
+                            fontWeight: FontWeight.w700, // Prix plus gras
                             fontSize: 16,
-                            fontFamily: 'Poppins', // Consistent font
+                            fontFamily: 'Poppins', // Police cohérente
                           ),
                         ),
                         Container(
@@ -654,11 +679,11 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
                           decoration: BoxDecoration(
                             color: const Color(
                               0xFF4A6572,
-                            ), // Consistent accent color
+                            ), // Couleur d'accentuation cohérente
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
-                            Icons.add_rounded, // Rounded add icon
+                            Icons.add_rounded, // Icône d'ajout arrondie
                             color: Colors.white,
                             size: 16,
                           ),
@@ -675,21 +700,24 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
     );
   }
 
-  /// Builds a single dish list tile for the list view.
-  Widget _buildDishListTile(Map<String, dynamic> dish) {
+  /// Construit un élément de liste de plat pour la vue en liste.
+  Widget _buildPlatListTile(Plat plat) {
+    // Type Plat
     return GestureDetector(
       onTap:
           () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => DetailPlatPage(dish: dish)),
+            MaterialPageRoute(
+              builder: (context) => DetailPlatPage(plat: plat),
+            ), // Passe l'objet Plat
           ),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16), // Consistent rounded corners
+          borderRadius: BorderRadius.circular(16), // Coins arrondis cohérents
           boxShadow: const [
             BoxShadow(
-              color: Colors.black12, // Consistent shadow
+              color: Colors.black12, // Ombre cohérente
               blurRadius: 8,
               spreadRadius: 1,
             ),
@@ -699,28 +727,44 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
           padding: const EdgeInsets.all(16),
           child: Row(
             crossAxisAlignment:
-                CrossAxisAlignment.start, // Align content to top
+                CrossAxisAlignment.start, // Aligner le contenu en haut
             children: [
+              // Image du Plat
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  dish['imageUrl'],
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                  errorBuilder:
-                      (context, error, stackTrace) => Container(
-                        width: 80,
-                        height: 80,
-                        color: Colors.grey.shade200,
-                        child: Center(
-                          child: Icon(
-                            Icons.broken_image_rounded,
-                            color: Colors.grey.shade400,
-                          ), // Rounded icon
+                child:
+                    plat.imageUrl != null && plat.imageUrl!.isNotEmpty
+                        ? Image.network(
+                          plat.imageUrl!, // Utilise plat.imageUrl
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                          errorBuilder:
+                              (context, error, stackTrace) => Container(
+                                width: 80,
+                                height: 80,
+                                color: Colors.grey.shade200,
+                                child: Center(
+                                  child: Icon(
+                                    Icons.broken_image_rounded,
+                                    color: Colors.grey.shade400,
+                                  ), // Icône arrondie
+                                ),
+                              ),
+                        )
+                        : Container(
+                          // Repli si pas d'URL d'image
+                          width: 80,
+                          height: 80,
+                          color: Colors.grey.shade200,
+                          child: Center(
+                            child: Icon(
+                              Icons.fastfood_outlined,
+                              size: 40,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
                         ),
-                      ),
-                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -731,46 +775,27 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
                       children: [
                         Expanded(
                           child: Text(
-                            dish['name'],
+                            plat.nomPlat, // Utilise plat.nomPlat
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
                               color:
-                                  Colors.grey.shade800, // Consistent text color
-                              fontFamily: 'Poppins', // Consistent font
+                                  Colors
+                                      .grey
+                                      .shade800, // Couleur de texte cohérente
+                              fontFamily: 'Poppins', // Police cohérente
                             ),
                           ),
                         ),
-                        if (dish['isPopular'])
-                          Container(
-                            margin: const EdgeInsets.only(left: 8),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.red.shade500,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              'Populaire',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: 'Poppins', // Consistent font
-                              ),
-                            ),
-                          ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      dish['description'],
+                      plat.description, // Utilise plat.description
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey.shade600,
-                        fontFamily: 'Poppins', // Consistent font
+                        fontFamily: 'Poppins', // Police cohérente
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -779,14 +804,14 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
                     Row(
                       children: [
                         Text(
-                          '\$${dish['price'].toStringAsFixed(2)}',
+                          '€${plat.prix.toStringAsFixed(2)}', // Utilise plat.prix
                           style: TextStyle(
                             color: const Color(
                               0xFF4A6572,
-                            ), // Consistent accent color
+                            ), // Couleur d'accentuation cohérente
                             fontWeight: FontWeight.w700,
                             fontSize: 18,
-                            fontFamily: 'Poppins', // Consistent font
+                            fontFamily: 'Poppins', // Police cohérente
                           ),
                         ),
                         const Spacer(),
@@ -795,12 +820,12 @@ class _PlatsPageState extends State<PlatsPage> with TickerProviderStateMixin {
                           decoration: BoxDecoration(
                             color: const Color(
                               0xFF4A6572,
-                            ), // Consistent accent color
+                            ), // Couleur d'accentuation cohérente
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
                             Icons
-                                .add_shopping_cart_rounded, // Rounded cart icon
+                                .add_shopping_cart_rounded, // Icône de panier arrondie
                             color: Colors.white,
                             size: 20,
                           ),

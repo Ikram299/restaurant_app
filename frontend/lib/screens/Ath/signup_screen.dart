@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '/services/auth_service.dart';
-import '/models/client_model.dart';
+import '/models/client_model.dart'; // Assurez-vous que l'importation pointe vers 'client.dart'
 
 class SignUpScreen extends StatefulWidget {
   @override
@@ -20,46 +20,50 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isAdminAccount = false; // État pour la case à cocher isAdmin
 
   void _register() async {
+    // Correction ici: Passer la valeur de _isAdminAccount directement au Client
     final client = Client(
       email: _emailController.text,
-      nomClient: _nomController.text,
-      prenomClient: _prenomController.text,
+      nomClient: _nomController.text.isNotEmpty ? _nomController.text : null, // Gérer les champs vides comme null
+      prenomClient: _prenomController.text.isNotEmpty ? _prenomController.text : null,
       motDePasse: _passwordController.text,
-      numTel: _numTelController.text,
-      adresse: _adresseController.text,
+      numTel: _numTelController.text.isNotEmpty ? _numTelController.text : null,
+      adresse: _adresseController.text.isNotEmpty ? _adresseController.text : null,
+      isAdmin: _isAdminAccount, // L'information isAdmin est dans l'objet Client
     );
 
-    final success = await _authService.register(
-      client,
-      isAdmin: _isAdminAccount,
-    );
+    // Correction ici: Supprimer le paramètre nommé 'isAdmin' de l'appel à _authService.register
+    final success = await _authService.register(client);
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Inscription réussie ! Veuillez vous connecter."),
-          backgroundColor: Colors.green,
-        ),
-      );
-      Navigator.pushReplacementNamed(context, '/login');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Erreur lors de l'inscription. L'email est peut-être déjà utilisé.",
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Inscription réussie ! Veuillez vous connecter."),
+            backgroundColor: Colors.green,
           ),
-          backgroundColor: Colors.red,
-        ),
-      );
+        );
+        Navigator.pushReplacementNamed(context, '/login');
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Erreur lors de l'inscription. L'email est peut-être déjà utilisé.",
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Color(0xFF4A6572);
+    final primaryColor = const Color(0xFF4A6572);
 
     return Scaffold(
-      backgroundColor: Color(0xFFD9E2E5),
+      backgroundColor: const Color(0xFFD9E2E5),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
@@ -79,7 +83,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       children: [
                         Image.asset('assets/logo.png', height: 70), // Logo encore plus petit
                         const SizedBox(height: 16), // Espacement réduit
-                        Text(
+                        const Text(
                           'Inscription',
                           style: TextStyle(
                             fontSize: 24, // Taille de police légèrement réduite
@@ -164,7 +168,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                         // Spacer est très utile pour pousser le contenu vers les extrémités
                         // et utiliser l'espace restant, aidant à éviter le scroll
-                        Spacer(),
+                        const Spacer(),
                       ],
                     ),
                   ),
@@ -184,17 +188,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
     String label, {
     bool obscure = false,
   }) {
-    final primaryColor = Color(0xFF4A6572);
+    final primaryColor = const Color(0xFF4A6572);
     final isPasswordField = label.toLowerCase().contains('mot de passe');
 
     return TextField(
       controller: controller,
       obscureText: isPasswordField ? !_isPasswordVisible : false,
-      style: TextStyle(fontSize: 14), // Taille de police pour le texte saisi
+      style: const TextStyle(fontSize: 14), // Taille de police pour le texte saisi
       decoration: InputDecoration(
         prefixIcon: Icon(icon, color: primaryColor, size: 18), // Icône plus petite
         labelText: label,
-        labelStyle: TextStyle(color: primaryColor, fontSize: 14), // Taille de police pour le label
+        labelStyle: const TextStyle(color: Color(0xFF4A6572), fontSize: 14), // Taille de police pour le label
         contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14), // Padding encore plus réduit
         isDense: true, // Rend le champ de texte plus compact
         filled: true,

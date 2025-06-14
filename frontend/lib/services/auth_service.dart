@@ -1,6 +1,9 @@
+// lib/services/auth_service.dart
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/client_model.dart';
+import '../models/client_model.dart'; // Assurez-vous que l'importation pointe vers 'client.dart'
+import 'package:shared_preferences/shared_preferences.dart'; // Pour stocker le token client si vous l'utilisez
 
 class AuthService {
   // URLs corrigées vers le serveur
@@ -29,8 +32,23 @@ class AuthService {
           final data = json.decode(response.body);
           print('Données décodées : $data');
 
-          // Crée un objet Client à partir des données JSON reçues
-          return Client.fromMap(data);
+          // Correction ici: Utilisez Client.fromJson
+          // Le backend Go pour loginHandler renvoie directement l'objet client (sans clé 'client' imbriquée)
+          final Client loggedInClient = Client.fromJson(data);
+
+          // Optionnel: Stocker les informations de session si nécessaire (par exemple, le token ou l'ID de l'utilisateur)
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('userEmail', loggedInClient.email);
+          await prefs.setBool('isAdmin', loggedInClient.isAdmin);
+          // CHANGEMENT ICI: Stocke l'ID comme String si non nul
+          if (loggedInClient.id != null) {
+            await prefs.setString('userId', loggedInClient.id!);
+          } else {
+            await prefs.remove('userId'); // S'assure que userId est propre si l'ID est nul
+          }
+
+
+          return loggedInClient;
         } catch (e) {
           // Erreur lors du décodage JSON, même si le statut est 200 (réponse inattendue)
           print('Erreur lors du décodage JSON de la réponse de connexion : $e');
@@ -56,30 +74,18 @@ class AuthService {
     }
   }
 
-  // Fonction d'inscription (inchangée, elle est correcte)
-  Future<bool> register(Client newClient, {bool isAdmin = false}) async {
+  // Fonction d'inscription
+  Future<bool> register(Client newClient) async { // Suppression du paramètre isAdmin séparé
     final url = signupUrl;
     print(
-      'Tentative d\'inscription avec l\'email : ${newClient.email}, isAdmin : $isAdmin',
+      'Tentative d\'inscription avec l\'email : ${newClient.email}, isAdmin : ${newClient.isAdmin}',
     );
 
     try {
-      final body = {
-        'email': newClient.email,
-        'nomClient': newClient.nomClient,
-        'prenomClient': newClient.prenomClient,
-        'motDePasse': newClient.motDePasse,
-        'numTel': newClient.numTel,
-        'adresse': newClient.adresse,
-        'isAdmin':
-            isAdmin
-                ? 1
-                : 0, // selon ce que ton backend attend (0/1 ou true/false)
-      };
-
+      // Correction ici: Utilisez newClient.toJson() pour construire le corps de la requête
       final response = await http.post(
         url,
-        body: json.encode(body),
+        body: json.encode(newClient.toJson()), // newClient.toJson() gère déjà isAdmin en bool
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -98,8 +104,14 @@ class AuthService {
   }
 
   // Fonction de déconnexion (inchangée)
-  Future<bool> logout() async {
+  Future<void> logout() async { // CHANGEMENT: Retourne Future<void> car pas de valeur significative à retourner
     print('Déconnexion de l\'utilisateur');
-    return true;
+    // Optionnel: Nettoyer SharedPreferences si des données de session y sont stockées
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('userEmail');
+    await prefs.remove('isAdmin');
+    // CHANGEMENT ICI: Retire userId de SharedPreferences
+    await prefs.remove('userId');
+    // return true; // Plus nécessaire car Future<void>
   }
 }
