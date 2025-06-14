@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:restaurant_app/models/plat.dart';
+import 'package:restaurant_app/screens/client/offres_page.dart';
 import '../client/plats_page.dart';
 import '../client/reservation_page.dart';
 import '../client/detail_plat_page.dart';
@@ -346,13 +347,22 @@ class _AccueilPageState extends State<AccueilPage>
                         const SizedBox(height: 15),
                         ElevatedButton(
                           onPressed: () {
+                            // NOUVEAU : Navigue vers la OffresPage
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const OffresPage(),
+                              ),
+                            );
+                            // Laissez le SnackBar si vous voulez une confirmation visuelle rapide avant la navigation
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
                                   'Découvrez nos offres !',
                                   style: GoogleFonts.poppins(),
                                 ),
-                                backgroundColor: primaryAppColor,
+                                backgroundColor:
+                                    primaryAppColor, // Assurez-vous que primaryAppColor est accessible ici
                                 behavior: SnackBarBehavior.floating,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
@@ -362,7 +372,8 @@ class _AccueilPageState extends State<AccueilPage>
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: accentColor,
+                            backgroundColor:
+                                accentColor, // Assurez-vous que accentColor est accessible ici
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
