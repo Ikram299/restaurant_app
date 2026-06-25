@@ -41,7 +41,30 @@ Projet BTS DSI - Promotion 2023/2025
 1. Cloner le projet
 2. Lancer le backend: go run main.go
 3. Lancer le frontend: flutter run
+## 📸 Captures d'écran
 
+### 👤 Côté Client
+
+| Écran | Aperçu |
+|-------|--------|
+| Page d'accueil | ![Accueil](screenshots/01-accueil.png) |
+| Connexion | ![Connexion](screenshots/02-connexion.png) |
+| Inscription | ![Inscription](screenshots/03-inscription.png) |
+| Menu & Filtrage | ![Filtrage](screenshots/04-menu-filtrage.png) |
+| Détail du plat | ![Détail](screenshots/05-detail-plat.png) |
+| Réservation | ![Réservation](screenshots/06-reservation.png) |
+| Panier | ![Panier](screenshots/07-panier.png) |
+
+### 🔐 Côté Administrateur
+
+| Écran | Aperçu |
+|-------|--------|
+| Dashboard Admin | ![Dashboard](screenshots/08-admin-dashboard.png) |
+| Gestion du menu | ![Menu](screenshots/09-admin-menu.png) |
+| Gestion des commandes | ![Commandes](screenshots/10-admin-commandes.png) |
+| Gestion des réservations | ![Réservations](screenshots/11-admin-reservations.png) |
+| Gestion des clients | ![Clients](screenshots/12-admin-clients.png) |
+| Gestion des paiements | ![Paiements](screenshots/13-admin-paiements.png) |
 ## 📄 Rapport
 [Voir le rapport](docs/rapportPFE.pdf)
 ## 📞 Contact
