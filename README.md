@@ -29,14 +29,6 @@ Application mobile de gestion de restaurant permettant aux clients de :
 - Gestion des commandes
 - Gestion des réservations
 - Gestion des clients
-
-## 👩‍💻 Équipe
-- Ikram Aarou
-- Hiba Tibary
-
-## 🎓 Contexte
-Projet BTS DSI - Promotion 2023/2025
-
 ## 🚀 Installation
 1. Cloner le projet
 2. Lancer le backend: go run main.go
